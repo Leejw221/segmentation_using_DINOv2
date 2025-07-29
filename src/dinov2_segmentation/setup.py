@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'static_seg_node = dinov2_segmentation.static_seg_node:main',
             'rise2_seg_node = dinov2_segmentation.rise2_seg_node:main',
+            'optimized_rise2_seg_node = dinov2_segmentation.optimized_rise2_seg_node:main',
             'url_publisher = dinov2_segmentation.url_publisher:main',
             'file_publisher = dinov2_segmentation.file_publisher:main',
             'image_test_node = dinov2_segmentation.image_test_node:main',
