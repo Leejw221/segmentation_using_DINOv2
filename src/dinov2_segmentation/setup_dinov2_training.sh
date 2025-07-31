@@ -38,24 +38,10 @@ if [[ "$CONDA_DEFAULT_ENV" != "dinov2_training" ]]; then
     exit 1
 fi
 
-# 패키지 설치 스크립트 생성
-cat > install_packages.sh << 'EOF'
-#!/bin/bash
-
-echo "📦 패키지 설치 시작..."
-
-# 현재 conda 환경 확인
-if [[ "$CONDA_DEFAULT_ENV" != "dinov2_training" ]]; then
-    echo "❌ dinov2_training 환경이 활성화되지 않았습니다."
-    echo "   conda activate dinov2_training 를 먼저 실행하세요."
-    exit 1
-fi
-
-# 2. PyTorch 설치 (CPU 또는 CUDA)
+# 2. PyTorch 설치 (CUDA 12.4 호환)
 echo "🔥 PyTorch 설치..."
-# GPU가 있는 경우: conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
-# CPU만 있는 경우 (현재 시스템):
-conda install pytorch torchvision torchaudio cpuonly -c pytorch -y
+# CUDA 12.4는 CUDA 12.1 버전과 호환됩니다
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
 
 # 3. Transformers 설치
 echo "🤗 Transformers 설치..."
