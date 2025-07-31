@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -6,32 +6,56 @@ package_name = 'dinov2_segmentation'
 
 setup(
     name=package_name,
-    version='0.0.1',
-    packages=[package_name],
+    version='1.0.0',
+    packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        # launch 파일들 추가
+        
+        # Launch files
         (os.path.join('share', package_name, 'launch'), 
          glob('launch/*.launch.py')),
+        
+        # Configuration files
+        (os.path.join('share', package_name, 'configs'), 
+         glob('configs/*.yaml')),
+        
+        # Models directory (for trained weights)
+        (os.path.join('share', package_name, 'models'), 
+         []),  # Empty for now, models will be added after training
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'torch',
+        'torchvision',
+        'transformers',
+        'numpy',
+        'opencv-python',
+        'pillow',
+        'requests',
+        'pyyaml',
+        'tqdm',
+        'scikit-learn',
+        'albumentations',
+        'tensorboard',
+    ],
     zip_safe=True,
     maintainer='leejungwook',
     maintainer_email='your_email@example.com',
-    description='DINOv2 segmentation for mobile manipulator research',
-    license='Apache License 2.0',
+    description='DINOv2 based semantic segmentation for ROS2',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'static_seg_node = dinov2_segmentation.static_seg_node:main',
-            'rise2_seg_node = dinov2_segmentation.rise2_seg_node:main',
-            'optimized_rise2_seg_node = dinov2_segmentation.optimized_rise2_seg_node:main',
-            'url_publisher = dinov2_segmentation.url_publisher:main',
-            'file_publisher = dinov2_segmentation.file_publisher:main',
-            'image_test_node = dinov2_segmentation.image_test_node:main',
-            'test_node = dinov2_segmentation.test_node:main',
+            # ROS2 nodes
+            'ros2_segmentation_node = dinov2_segmentation.inference.ros2_segmentation_node:main',
+            
+            # Training scripts
+            'train_segmentation = dinov2_segmentation.training.train_segmentation:main',
+            
+            # Inference scripts
+            'inference = dinov2_segmentation.inference.inference:main',
         ],
     },
 )

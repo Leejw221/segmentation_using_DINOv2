@@ -1,0 +1,43 @@
+# DINOv2 Segmentation Configuration
+
+model:
+  num_classes: 150  # ADE20K has 150 classes
+  model_name: "facebook/dinov2-base"  # DINOv2 model variant
+  freeze_backbone: true  # Freeze DINOv2 backbone, only train segmentation head
+
+training:
+  batch_size: 8  # Adjust based on GPU memory
+  learning_rate: 1e-4
+  num_epochs: 50
+  image_size: 224  # Input image size
+  num_workers: 4  # DataLoader workers
+  
+  # Data augmentation
+  augmentation:
+    horizontal_flip: 0.5
+    brightness_contrast: 0.2
+    color_jitter: 0.2
+
+loss:
+  use_dice: false  # Whether to use dice loss in addition to CrossEntropy
+  dice_weight: 1.0  # Weight for dice loss if enabled
+  
+# Inference settings
+inference:
+  visualization_alpha: 0.6  # Transparency for segmentation overlay
+  confidence_threshold: 0.5  # Confidence threshold for visualization
+  
+# ROS2 specific settings
+ros2:
+  auto_demo: true  # Enable automatic demo with sample images
+  demo_interval: 5.0  # Interval between demo images (seconds)
+  
+# Dataset paths (to be specified when running)
+data:
+  ade20k_root: ""  # Path to ADE20K dataset root directory
+  
+# Output directories
+output:
+  checkpoints_dir: "models/checkpoints"
+  logs_dir: "logs"
+  visualizations_dir: "outputs/visualizations"
