@@ -8,6 +8,8 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import os
+import random
+import glob
 from PIL import Image as PILImage
 import requests
 import io
@@ -44,7 +46,7 @@ class DINOv2SegmentationNode(Node):
         
         # Parameters
         self.declare_parameter('model_path', '')
-        self.declare_parameter('num_classes', 150)
+        self.declare_parameter('num_classes', 151)
         self.declare_parameter('visualization_alpha', 0.6)
         self.declare_parameter('auto_demo', True)
         self.declare_parameter('demo_interval', 5.0)
@@ -81,18 +83,28 @@ class DINOv2SegmentationNode(Node):
             self.get_logger().error(f"Failed to load model: {str(e)}")
             return
         
-        # Sample images for demo
-        self.sample_urls = [
-            "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/segmentation_input.jpg",
-            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=640",
-            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=640"
-        ]
-        self.url_index = 0
+        # ADE20K 전체 이미지 경로 설정 (무작위 선택용)
+        self.ade20k_base_path = "/home/leejungwook/dinov2_ws/src/dinov2_segmentation/datasets/ADEChallengeData2016/images/training"
         
-        # Auto demo timer
+        # 모든 ADE20K 훈련 이미지 목록 가져오기
+        image_pattern = os.path.join(self.ade20k_base_path, "*.jpg")
+        self.all_images = glob.glob(image_pattern)
+        
+        if len(self.all_images) == 0:
+            self.get_logger().error(f"No training images found in: {self.ade20k_base_path}")
+            self.get_logger().info("Please check if ADE20K dataset is properly downloaded")
+        else:
+            self.get_logger().info(f"Found {len(self.all_images)} training images for random demo")
+        
+        # 무작위 시드 설정
+        random.seed()
+        
+        # Auto demo timer (첫 번째 이미지는 3초 후 즉시 시작)
         if auto_demo:
-            self.timer = self.create_timer(demo_interval, self.demo_callback)
-            self.get_logger().info(f"Auto demo enabled with {demo_interval}s interval")
+            # 첫 번째 이미지는 3초 후 바로 처리
+            self.first_timer = self.create_timer(3.0, self.first_demo_callback)
+            self.demo_interval = demo_interval
+            self.get_logger().info(f"무작위 이미지 데모 활성화 - 첫 이미지 3초 후, 이후 {demo_interval}s 간격")
         
         self.get_logger().info("DINOv2 Segmentation Node initialized!")
         self.get_logger().info("Available topics:")
@@ -213,16 +225,39 @@ class DINOv2SegmentationNode(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to process ROS Image: {str(e)}")
     
+    def first_demo_callback(self):
+        """첫 번째 데모 콜백 - 즉시 시작 후 정규 타이머로 전환"""
+        self.demo_callback()  # 첫 번째 이미지 처리
+        
+        # 첫 번째 타이머 제거하고 정규 타이머 시작
+        self.first_timer.cancel()
+        self.timer = self.create_timer(self.demo_interval, self.demo_callback)
+        self.get_logger().info(f"정규 타이머로 전환 - {self.demo_interval}s 간격")
+    
     def demo_callback(self):
-        """Auto demo callback"""
-        if self.url_index < len(self.sample_urls):
-            url = self.sample_urls[self.url_index]
-            self.get_logger().info(f"🎬 Auto demo {self.url_index + 1}/{len(self.sample_urls)}: {url}")
-            pil_image = self.download_image(url)
+        """Auto demo callback - 무작위 ADE20K 이미지 처리"""
+        if len(self.all_images) == 0:
+            self.get_logger().error("No training images available for demo")
+            return
+        
+        # 무작위로 이미지 선택
+        image_path = random.choice(self.all_images)
+        
+        # 파일 존재 확인
+        if not os.path.exists(image_path):
+            self.get_logger().error(f"Selected image not found: {image_path}")
+            return
+        
+        # 이미지 번호 추출 (파일명에서)
+        image_filename = os.path.basename(image_path)
+        self.get_logger().info(f"🎲 무작위 ADE20K 데모: {image_filename}")
+        
+        try:
+            # 로컬 이미지 로드
+            pil_image = PILImage.open(image_path).convert('RGB')
             self.process_image(pil_image)
-            self.url_index += 1
-        else:
-            self.url_index = 0  # Reset for continuous demo
+        except Exception as e:
+            self.get_logger().error(f"Failed to process ADE20K image {image_path}: {e}")
 
 
 def main(args=None):

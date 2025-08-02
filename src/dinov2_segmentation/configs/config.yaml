@@ -1,22 +1,32 @@
 # DINOv2 Segmentation Configuration
 
 model:
-  num_classes: 150  # ADE20K has 150 classes
+  num_classes: 150  # ADE20K has 150 classes (0-149, excluding background)
   model_name: "facebook/dinov2-base"  # DINOv2 model variant
   freeze_backbone: true  # Freeze DINOv2 backbone, only train segmentation head
 
 training:
-  batch_size: 8  # Adjust based on GPU memory
-  learning_rate: 1e-4
-  num_epochs: 50
-  image_size: 224  # Input image size
+  batch_size: 16  # Same as paper
+  learning_rate: 0.01  # Paper uses 0.01 for linear evaluation (100x higher)
+  num_epochs: 160  # Paper uses 160 epochs (was 100)
+  image_size: 518  # Paper uses 518x518 (was 224)
   num_workers: 4  # DataLoader workers
   
-  # Data augmentation
+  # Optimizer settings (following paper)
+  optimizer: "sgd"  # Paper uses SGD (was Adam by default)
+  momentum: 0.9     # SGD momentum
+  weight_decay: 0.0 # No weight decay for linear evaluation
+  
+  # Learning rate schedule (following paper)
+  scheduler: "polynomial"  # Polynomial decay
+  power: 1.0              # Linear decay
+  
+  # Data augmentation (simplified to match paper)
   augmentation:
-    horizontal_flip: 0.5
-    brightness_contrast: 0.2
-    color_jitter: 0.2
+    horizontal_flip: 0.5    # Keep this
+    multi_scale_crop: true  # Add multi-scale crop like paper
+    crop_size: 518         # Crop to 518x518
+    # Remove other augmentations to match paper exactly
 
 loss:
   use_dice: false  # Whether to use dice loss in addition to CrossEntropy

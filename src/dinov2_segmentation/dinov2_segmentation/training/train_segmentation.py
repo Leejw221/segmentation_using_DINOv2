@@ -128,6 +128,15 @@ def main():
             }
         }
     
+    # Ensure numeric values are properly typed
+    config['training']['learning_rate'] = float(config['training']['learning_rate'])
+    config['training']['batch_size'] = int(config['training']['batch_size'])
+    config['training']['num_epochs'] = int(config['training']['num_epochs'])
+    config['training']['image_size'] = int(config['training']['image_size'])
+    config['training']['num_workers'] = int(config['training']['num_workers'])
+    config['model']['num_classes'] = int(config['model']['num_classes'])
+    config['loss']['dice_weight'] = float(config['loss']['dice_weight'])
+    
     # Setup device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
@@ -165,7 +174,7 @@ def main():
     
     optimizer = optim.AdamW(
         model.parameters(),
-        lr=config['training']['learning_rate'],
+        lr=float(config['training']['learning_rate']),
         weight_decay=1e-4
     )
     

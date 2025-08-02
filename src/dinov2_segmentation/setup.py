@@ -48,8 +48,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            # ROS2 nodes
+            # ROS2 nodes  
             'ros2_segmentation_node = dinov2_segmentation.inference.ros2_segmentation_node:main',
+            'rise2_seg_node = dinov2_segmentation.inference.ros2_segmentation_node:main',  # 기존 호환성
             
             # Training scripts
             'train_segmentation = dinov2_segmentation.training.train_segmentation:main',
