@@ -1,0 +1,55 @@
+# Large files and datasets - excluded from git
+datasets/
+training_result_log/
+*.zip
+*.tar.gz
+
+# Model files - too large for GitHub
+models/
+logs/
+outputs/
+checkpoints/
+*.pth
+*.pt
+*.safetensors
+*.bin
+*.ckpt
+
+# Large data files
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+*.env
+venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

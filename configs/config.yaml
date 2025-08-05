@@ -1,0 +1,92 @@
+# DINOv2 Segmentation Configuration - Matching Original Paper Settings
+
+model:
+  num_classes: 150  # ADE20K has 150 classes (1-150, 0 is background/ignore)
+  model_name: "facebook/dinov2-base"  # DINOv2-base model variant
+  freeze_backbone: true  # Initial freeze setting for Phase 1
+
+# epoch = iteration / iterations_per_epoch
+# iterations_per_epoch = dataset_size / batch_size
+# For ADE20K with 20,210 images
+training:
+  # Two-phase training strategy (iteration-based, Optimized for time)
+  # ADE20K: ~20,210 images, batch_size will vary
+  # Reduced from DINOv2 paper for faster training on shared server
+  total_iterations: 60000       # Total: ~47 epochs (50% time reduction)
+  phase1_iterations: 40000      # Phase 1: Linear probing ~32 epochs  
+  phase2_iterations: 20000      # Phase 2: Fine-tuning ~16 epochs
+  
+  # Phase 1 settings (Linear Probing - Backbone Frozen)
+  phase1_learning_rate: 0.001   # DINOv2 paper: 1e-3 for linear probing
+  phase1_optimizer: "adamw"     # AdamW optimizer (DINOv2 standard)
+  phase1_weight_decay: 0.0      # No weight decay for linear probing
+  phase1_betas: [0.9, 0.999]    # AdamW betas
+  
+  # Phase 2 settings (Fine-tuning - Backbone Unfrozen)
+  phase2_learning_rate: 0.0001  # DINOv2 paper: 1e-4 for fine-tuning
+  phase2_optimizer: "adamw"     # AdamW optimizer
+  phase2_weight_decay: 0.05     # DINOv2 paper: 0.05 weight decay
+  phase2_betas: [0.9, 0.999]    # AdamW betas
+  
+  # Learning Rate Scheduler (DINOv2 paper style)
+  scheduler: "cosine"           # Cosine scheduler with linear warmup
+  poly_power: 1.0               # For polynomial (not used with cosine)
+  min_lr: 0.0                   # Minimum learning rate
+  
+  # Warmup settings (Optimized for faster training)
+  warmup_iterations: 5000       # Reduced warmup for faster convergence
+  warmup_method: "linear"       # Linear warmup method
+  warmup_factor: 0.000001       # DINOv2 paper: 1e-6 warmup factor
+  
+  # Batch and Image settings (Memory optimized)
+  batch_size: 8                 # Reduced for 640x640 stability
+  image_size: 640               # High resolution maintained
+  num_workers: 2                # Reduced workers for memory safety
+  
+  # Data augmentation (DINOv2 paper style)
+  augmentation:
+    horizontal_flip: 0.5          # 50% probability
+    multi_scale_crop: true        # Enable multi-scale crop (DINOv2 paper)
+    scale_range: [0.5, 2.0]       # DINOv2 paper: more aggressive scale range
+    crop_size: 640                # Match image_size
+    photometric_distortion: true  # Enable photometric distortion
+    color_jitter: 0.4             # DINOv2 paper: color jittering strength
+  
+  # Single GPU training (Non-distributed)
+  distributed: false            # Single GPU (RTX 3090 × 1)
+  num_gpus: 1                   # Number of GPUs to use
+  sync_bn: false                # No sync needed for single GPU
+
+loss:
+  type: "cross_entropy"         # CrossEntropy loss (DINOv2 paper)
+  ignore_index: 0              # Ignore background class (ADE20K standard)
+  
+# Inference settings (Conservative)
+inference:
+  multi_scale: false                        # Disable for now
+  scale_ratios: [1.0]                      # Single scale only
+  flip_augmentation: false                 # Disable flip
+  sliding_window: false                    # Disable sliding window
+  crop_size: 640                          # Match training size
+  stride: 320                             # Half of crop_size
+  
+# Dataset paths (to be specified when running)
+data:
+  ade20k_root: "datasets/ADEChallengeData2016"  # Path to ADE20K dataset root directory
+
+# Output directories
+output:
+  checkpoints_dir: "models/checkpoints"
+  logs_dir: "logs"
+  visualizations_dir: "outputs/visualizations"
+  
+# Evaluation settings (Optimized for faster training)
+evaluation:
+  interval: 5000                # Evaluate every 5k iterations (more frequent monitoring)
+  save_best: true              # Save best model based on mIoU
+  metrics: ["mIoU", "mAcc"]    # Evaluation metrics
+  
+# Logging settings (Optimized for performance)
+logging:
+  print_interval: 200           # Print progress every 200 iterations (reduced I/O)
+  tensorboard_interval: 100    # Log to tensorboard every 100 iterations
