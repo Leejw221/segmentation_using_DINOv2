@@ -1,0 +1,28 @@
+name: dinov2_segmentation
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pytorch
+  - torchvision 
+  - torchaudio
+  - pytorch-cuda=12.1
+  - numpy
+  - pip
+  - pip:
+    - opencv-python
+    - pillow
+    - rclpy
+    - sensor-msgs
+    - std-msgs
+    - geometry-msgs
+    - nav-msgs
+    - tf2-msgs
+    - cv-bridge
+    - message-filters
+    - requests
+    - setuptools
+    - colcon-common-extensions

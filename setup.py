@@ -33,6 +33,7 @@ setup(
     entry_points={
         'console_scripts': [
             'dinov2_segmentation_node = dinov2_ros_segmentation.dinov2_segmentation_node:main',
+            'dinov2_bag_segmentation_node = dinov2_ros_segmentation.dinov2_bag_segmentation_node:main',
         ],
     },
 )
